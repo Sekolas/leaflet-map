@@ -1,25 +1,28 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import MapComponent from './components/Map';
+
 import './App.css';
 
-function App() {
+const App = () => {
+  const initialPosition = [];
+
+  const [startPosition, setStartPosition] = useState(null);
+  const [endPosition, setEndPosition] = useState(null);
+
+  const handleButtonClick = (start, end) => {
+    setStartPosition(start);
+    setEndPosition(end);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>React ile Leaflet Haritası</h1>
+      <div className="button-group">
+      </div>
+      <MapComponent startPosition={startPosition} endPosition={endPosition} initialPosition={initialPosition} />
     </div>
   );
-}
+};
 
 export default App;
+

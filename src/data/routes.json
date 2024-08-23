@@ -1,0 +1,66 @@
+{
+  "routes": [
+    {
+      "id": "t_1",
+      "name": "Rota 2",
+      "start_point": {
+        "id": "123",
+        "location": {
+          "latitude": 39.747018,
+          "longitude": 30.475082
+        }
+      },
+      "delivery_points": [
+        {
+          "id": "82",
+          "location": {
+            "latitude": 39.746907,
+            "longitude": 30.476032
+          }
+        },
+        {
+          "id": "52",
+          "location": {
+            "latitude": 39.748793,
+            "longitude": 30.480118
+          }
+        },
+        {
+          "id": "42C",
+          "location": {
+            "latitude": 39.751248,
+            "longitude": 30.480722
+          }
+        },
+        {
+          "id": "43",
+          "location": {
+            "latitude": 39.751969,
+            "longitude": 30.479951
+          }
+        },
+        {
+          "id": "44",
+          "location": {
+            "latitude": 39.751586,
+            "longitude": 30.477315
+          }
+        },
+        {
+          "id": "60A/2",
+          "location": {
+            "latitude": 39.749648,
+            "longitude": 30.474059
+          }
+        }
+      ],
+      "end_point": {
+        "id": "123",
+        "location": {
+          "latitude": 39.747018,
+          "longitude": 30.475082
+        }
+      }
+    }
+  ]
+}
