@@ -11,6 +11,4 @@ const RealtimeMarker = ({ position, icon }) => (
   </Marker>
 );
 
-
 export default RealtimeMarker;
-

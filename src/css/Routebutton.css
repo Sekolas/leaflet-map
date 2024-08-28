@@ -1,0 +1,23 @@
+/* src/css/Routebutton.css */
+.route-button {
+  background-color: #007bff; /* Butonun arka plan rengi */
+  border: none; /* Kenarlık yok */
+  color: white; /* Yazı rengi */
+  padding: 10px 20px; /* İç boşluk */
+  text-align: center; /* Metin hizalaması */
+  text-decoration: none; /* Alt çizgi yok */
+  display: inline-block; /* Butonun satır içinde görünmesini sağlar */
+  font-size: 16px; /* Yazı boyutu */
+  margin: 5px; /* Butonlar arasındaki boşluk */
+  cursor: pointer; /* İmleç değiştirme */
+  border-radius: 5px; /* Köşe yuvarlama */
+  transition: background-color 0.3s; /* Renk geçişi efekti */
+}
+
+.route-button:hover {
+  background-color: #0056b3; /* Hover durumunda arka plan rengi değişimi */
+}
+
+.route-button:active {
+  background-color: #004080; /* Butona tıklanıldığında arka plan rengi değişimi */
+}

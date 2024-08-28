@@ -7,8 +7,6 @@ import routeData from '../data/routes.json';
 import initialPositionIconUrl from '../assets/musoshi.png';
 import position1IconUrl from '../assets/marker.png';
 import deliveryIconUrl from '../assets/ikon2.png.png';
-
-// Özel ikonlar
 const initialPositionIcon = L.icon({
   iconUrl: initialPositionIconUrl,
   iconSize: [40, 40],
@@ -24,13 +22,15 @@ const position1Icon = L.icon({
 const deliveryIcon = L.icon({
   iconUrl: deliveryIconUrl,
   iconSize: [30, 30],
-  iconAnchor: [20, 30],
+  iconAnchor: [15, 30],
 });
 
-const MapComponent = () => {
+
+const MapComponent = ({ randomRoute, drawRoute }) => {
   const mapRef = useRef(null);
   const routingControl = useRef(null);
   const initialToStartRoutingControl = useRef(null);
+  const randomRoutingControl = useRef(null);
 
   const [initialPosition, setInitialPosition] = useState([39.748566, 30.474826]);
   const [selectedStartPoint, setSelectedStartPoint] = useState(null);
@@ -46,12 +46,13 @@ const MapComponent = () => {
 
   // Harita tıklama işlemini yönetme
   const MapClickHandler = () => {
-    const map = useMapEvents({
+    useMapEvents({
       click: (e) => {
         setInitialPosition([e.latlng.lat, e.latlng.lng]);
-        map.panTo([e.latlng.lat, e.latlng.lng]);
+        mapRef.current.panTo([e.latlng.lat, e.latlng.lng]);
       },
     });
+    return null;
   };
 
   const handleMarkerClick = (position) => {
@@ -66,6 +67,43 @@ const MapComponent = () => {
       setIsRoutingControlReady(false); // Yeni rota için kontrolü sıfırla
     }
   };
+
+  // Rastgele rota oluşturulduğunda çizim yap
+  useEffect(() => {
+    if (randomRoutingControl.current) {
+      try {
+        mapRef.current.removeControl(randomRoutingControl.current);
+      } catch (error) {
+        console.error('Random routing control remove error:', error);
+      }
+      randomRoutingControl.current = null;
+    }
+
+    if (randomRoute && mapRef.current) {
+      const { startPoint, endPoint } = randomRoute;
+
+      randomRoutingControl.current = L.Routing.control({
+        waypoints: [
+          L.latLng(startPoint[0], startPoint[1]),
+          L.latLng(endPoint[0], endPoint[1]),
+        ],
+        routeWhileDragging: false,
+        lineOptions: {
+          styles: [{ color: 'green', weight: 4 }],
+        },
+        addWaypoints: false,
+        fitSelectedRoutes: true,
+        createMarker: () => null,
+      })
+        .addTo(mapRef.current);
+      
+      
+      mapRef.current.fitBounds([
+        [startPoint[0], startPoint[1]],
+        [endPoint[0], endPoint[1]],
+      ]);
+    }
+  }, [randomRoute]);
 
   useEffect(() => {
     // Eski kontrolleri temizle
@@ -88,7 +126,7 @@ const MapComponent = () => {
     }
 
     // Yeni rotaları oluştur
-    if (selectedStartPoint && mapRef.current) { 
+    if (selectedStartPoint && mapRef.current) {
       const waypoints = [
         L.latLng(initialPosition[0], initialPosition[1]),
         L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
@@ -108,7 +146,7 @@ const MapComponent = () => {
         .on('routesfound', (e) => {
           setInitialToStartRoute(e.routes[0].coordinates.map(coord => [coord.lat, coord.lng]));
         });
-    } 
+    }
 
     if (selectedStartPoint && selectedEndPoint && mapRef.current) {
       const waypoints = [
@@ -130,8 +168,37 @@ const MapComponent = () => {
       routingControl.current.on('routesfound', () => {
         setIsRoutingControlReady(true);
       });
-    } 
-  }, [selectedStartPoint, selectedEndPoint, initialPosition]); 
+    }
+  }, [selectedStartPoint, selectedEndPoint, initialPosition]);
+
+  // Yeni drawRoute prop'una göre rota çizimi
+  useEffect(() => {
+    if (drawRoute && mapRef.current) {
+      if (routingControl.current) {
+        try {
+          mapRef.current.removeControl(routingControl.current);
+        } catch (error) {
+          console.error('Routing control remove error:', error);
+        }
+        routingControl.current = null;
+      }
+
+      const waypoints = drawRoute.map(route => 
+        L.latLng(route[0], route[1])
+      );
+
+      routingControl.current = L.Routing.control({
+        waypoints: waypoints,
+        routeWhileDragging: false,
+        lineOptions: {
+          styles: [{ color: 'purple', weight: 4 }],
+        },
+        addWaypoints: false,
+        fitSelectedRoutes: true,
+        createMarker: () => null,
+      }).addTo(mapRef.current);
+    }
+  }, [drawRoute]);
 
   return (
     <MapContainer
@@ -143,14 +210,14 @@ const MapComponent = () => {
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution='© OpenStreetMap contributors'
       />
 
       {/* Harita Tıklama Alanı */}
       <MapClickHandler />
 
       {/* initialPosition ile selectedStartPoint/selectedEndPoint arası rota */}
-      {initialToStartRoute && ( 
+      {initialToStartRoute && (
         <Polyline positions={initialToStartRoute} color="blue" weight={4} />
       )}
 
@@ -167,7 +234,7 @@ const MapComponent = () => {
         }}
       >
         <Popup>
-          {selectedStartPoint === startPosition ? "Start" : "Start Position"}
+          {selectedStartPoint === startPosition ? "Start Point" : "Start Position"}
         </Popup>
       </Marker>
       {deliveryPoints.map((position, index) => (
@@ -180,7 +247,11 @@ const MapComponent = () => {
           }}
         >
           <Popup>
-            {selectedEndPoint === position ? "End" : `Delivery Point ${index + 1}`}
+            {selectedStartPoint === position
+              ? "Start Point"
+              : selectedEndPoint === position
+              ? "End Point"
+              : `Delivery Point ${index + 1}`}
           </Popup>
         </Marker>
       ))}
