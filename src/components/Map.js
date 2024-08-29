@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import routeData from '../data/routes.json';
 import initialPositionIconUrl from '../assets/musoshi.png';
 import position1IconUrl from '../assets/marker.png';
-import deliveryIconUrl from '../assets/ikon2.png.png';
+import deliveryIconUrl from '../assets/ikon2.png';
+
 const initialPositionIcon = L.icon({
   iconUrl: initialPositionIconUrl,
   iconSize: [40, 40],
@@ -25,7 +26,6 @@ const deliveryIcon = L.icon({
   iconAnchor: [15, 30],
 });
 
-
 const MapComponent = ({ randomRoute, drawRoute }) => {
   const mapRef = useRef(null);
   const routingControl = useRef(null);
@@ -37,6 +37,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   const [selectedEndPoint, setSelectedEndPoint] = useState(null);
   const [initialToStartRoute, setInitialToStartRoute] = useState(null);
   const [isRoutingControlReady, setIsRoutingControlReady] = useState(false);
+  const [message, setMessage] = useState('');
 
   const route = routeData.routes[0];
   const startPosition = [route.start_point.location.latitude, route.start_point.location.longitude];
@@ -44,7 +45,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     point.location.latitude, point.location.longitude
   ]);
 
-  // Harita tıklama işlemini yönetme
   const MapClickHandler = () => {
     useMapEvents({
       click: (e) => {
@@ -61,14 +61,12 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     } else if (!selectedEndPoint) {
       setSelectedEndPoint(position);
     } else {
-      // Yeni bir rota çizmek için önceki seçimleri temizle
       setSelectedStartPoint(position);
       setSelectedEndPoint(null);
-      setIsRoutingControlReady(false); // Yeni rota için kontrolü sıfırla
+      setIsRoutingControlReady(false);
     }
   };
 
-  // Rastgele rota oluşturulduğunda çizim yap
   useEffect(() => {
     if (randomRoutingControl.current) {
       try {
@@ -94,10 +92,8 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
         addWaypoints: false,
         fitSelectedRoutes: true,
         createMarker: () => null,
-      })
-        .addTo(mapRef.current);
-      
-      
+      }).addTo(mapRef.current);
+
       mapRef.current.fitBounds([
         [startPoint[0], startPoint[1]],
         [endPoint[0], endPoint[1]],
@@ -106,7 +102,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   }, [randomRoute]);
 
   useEffect(() => {
-    // Eski kontrolleri temizle
     if (routingControl.current) {
       try {
         mapRef.current.removeControl(routingControl.current);
@@ -125,7 +120,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
       initialToStartRoutingControl.current = null;
     }
 
-    // Yeni rotaları oluştur
     if (selectedStartPoint && mapRef.current) {
       const waypoints = [
         L.latLng(initialPosition[0], initialPosition[1]),
@@ -171,7 +165,38 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     }
   }, [selectedStartPoint, selectedEndPoint, initialPosition]);
 
-  // Yeni drawRoute prop'una göre rota çizimi
+  // Yeni eklenen useEffect
+  useEffect(() => {
+    if (mapRef.current) {
+      let message = '';
+  
+      if (selectedStartPoint) {
+        const startCircle = L.circle(L.latLng(selectedStartPoint[0], selectedStartPoint[1]), { radius: 25 });
+        const startDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), startCircle.getLatLng());
+  
+        if (startDistance < startCircle.getRadius()) {
+          message = 'Start noktasına geldiniz!';
+        }
+      }
+  
+      if (selectedEndPoint) {
+        const endCircle = L.circle(L.latLng(selectedEndPoint[0], selectedEndPoint[1]), { radius: 25 });
+        const endDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), endCircle.getLatLng());
+  
+        if (endDistance < endCircle.getRadius()) {
+          message = 'End noktasına ulaştınız!';
+        }
+      }
+  
+      setMessage(message);
+    }
+  }, [initialPosition, selectedStartPoint, selectedEndPoint]);
+  
+  
+
+  
+
+
   useEffect(() => {
     if (drawRoute && mapRef.current) {
       if (routingControl.current) {
@@ -201,61 +226,82 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   }, [drawRoute]);
 
   return (
-    <MapContainer
-      ref={mapRef}
-      center={initialPosition}
-      zoom={13}
-      style={{ height: "600px", width: "100%" }}
-      whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='© OpenStreetMap contributors'
-      />
-
-      {/* Harita Tıklama Alanı */}
-      <MapClickHandler />
-
-      {/* initialPosition ile selectedStartPoint/selectedEndPoint arası rota */}
-      {initialToStartRoute && (
-        <Polyline positions={initialToStartRoute} color="blue" weight={4} />
-      )}
-
-      <Marker position={initialPosition} icon={initialPositionIcon}>
-        <Popup>
-          Initial Position
-        </Popup>
-      </Marker>
-      <Marker
-        position={startPosition}
-        icon={position1Icon}
-        eventHandlers={{
-          click: () => handleMarkerClick(startPosition),
-        }}
+    <div>
+      <MapContainer
+        ref={mapRef}
+        center={initialPosition}
+        zoom={13}
+        style={{ height: "600px", width: "100%" }}
+        whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
       >
-        <Popup>
-          {selectedStartPoint === startPosition ? "Start Point" : "Start Position"}
-        </Popup>
-      </Marker>
-      {deliveryPoints.map((position, index) => (
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='© OpenStreetMap contributors'
+        />
+
+        {/* Harita Tıklama Alanı */}
+        <MapClickHandler />
+
+        {/* initialPosition ile selectedStartPoint/selectedEndPoint arası rota */}
+        {initialToStartRoute && (
+          <Polyline positions={initialToStartRoute} color="blue" weight={4} />
+        )}
+
+        {/* Initial Position Marker */}
+        <Marker position={initialPosition} icon={initialPositionIcon}>
+          <Popup>
+            Initial Position
+          </Popup>
+        </Marker>
+
+
+        {/* Start Position Marker */}
         <Marker
-          key={index}
-          position={position}
-          icon={deliveryIcon}
+          position={startPosition}
+          icon={position1Icon}
           eventHandlers={{
-            click: () => handleMarkerClick(position),
+            click: () => handleMarkerClick(startPosition),
           }}
         >
           <Popup>
-            {selectedStartPoint === position
-              ? "Start Point"
-              : selectedEndPoint === position
-              ? "End Point"
-              : `Delivery Point ${index + 1}`}
+            {selectedStartPoint === startPosition ? "Start Point" : "Start Position"}
           </Popup>
         </Marker>
-      ))}
-    </MapContainer>
+        <Circle center={startPosition} radius={25} color="green" />
+
+        {/* Delivery Points Markers */}
+        {deliveryPoints.map((position, index) => (
+          <React.Fragment key={index}>
+            <Marker
+              position={position}
+              icon={deliveryIcon}
+              eventHandlers={{
+                click: () => handleMarkerClick(position),
+              }}
+            >
+              <Popup>
+                {selectedStartPoint === position
+                  ? "Start Point"
+                  : selectedEndPoint === position
+                    ? "End Point"
+                    : `Delivery Point ${index + 1}`}
+              </Popup>
+            </Marker>
+            <Circle center={position} radius={25} color="orange" />
+          </React.Fragment>
+        ))}
+
+        {/* Rastgele Rota Çizdirme */}
+        {randomRoute && (
+          <Polyline
+            positions={[randomRoute.startPoint, randomRoute.endPoint]}
+            color="green"
+            weight={4}
+          />
+        )}
+      </MapContainer>
+      {message && <div className="message">{message}</div>}
+    </div>
   );
 };
 
