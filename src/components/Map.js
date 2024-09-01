@@ -7,6 +7,7 @@ import routeData from '../data/routes.json';
 import initialPositionIconUrl from '../assets/musoshi.png';
 import position1IconUrl from '../assets/marker.png';
 import deliveryIconUrl from '../assets/ikon2.png';
+import InfoMessage from './PopupMessage';
 
 const initialPositionIcon = L.icon({
   iconUrl: initialPositionIconUrl,
@@ -39,6 +40,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   const [isRoutingControlReady, setIsRoutingControlReady] = useState(false);
   const [message, setMessage] = useState('');
 
+  const handleCloseMessage = () => setMessage('');
   const route = routeData.routes[0];
   const startPosition = [route.start_point.location.latitude, route.start_point.location.longitude];
   const deliveryPoints = route.delivery_points.map(point => [
@@ -165,7 +167,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     }
   }, [selectedStartPoint, selectedEndPoint, initialPosition]);
 
-  // Yeni eklenen useEffect
   useEffect(() => {
     if (mapRef.current) {
       let message = '';
@@ -192,11 +193,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     }
   }, [initialPosition, selectedStartPoint, selectedEndPoint]);
   
-  
-
-  
-
-
   useEffect(() => {
     if (drawRoute && mapRef.current) {
       if (routingControl.current) {
@@ -300,7 +296,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           />
         )}
       </MapContainer>
-      {message && <div className="message">{message}</div>}
+      <InfoMessage message={message} onClose={handleCloseMessage} />
     </div>
   );
 };
