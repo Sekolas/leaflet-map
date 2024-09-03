@@ -31,7 +31,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   const mapRef = useRef(null);
   const routingControl = useRef(null);
   const initialToStartRoutingControl = useRef(null);
-  const randomRoutingControl = useRef(null);
+  const count=useRef(false);
 
   const [initialPosition, setInitialPosition] = useState([39.748566, 30.474826]);
   const [selectedStartPoint, setSelectedStartPoint] = useState(null);
@@ -63,46 +63,14 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     } else if (!selectedEndPoint) {
       setSelectedEndPoint(position);
     } else {
+      count.current=false;
       setSelectedStartPoint(position);
       setSelectedEndPoint(null);
       setIsRoutingControlReady(false);
     }
   };
 
-  useEffect(() => {
-    if (randomRoutingControl.current) {
-      try {
-        mapRef.current.removeControl(randomRoutingControl.current);
-      } catch (error) {
-        console.error('Random routing control remove error:', error);
-      }
-      randomRoutingControl.current = null;
-    }
-
-    if (randomRoute && mapRef.current) {
-      const { startPoint, endPoint } = randomRoute;
-
-      randomRoutingControl.current = L.Routing.control({
-        waypoints: [
-          L.latLng(startPoint[0], startPoint[1]),
-          L.latLng(endPoint[0], endPoint[1]),
-        ],
-        routeWhileDragging: false,
-        lineOptions: {
-          styles: [{ color: 'green', weight: 4 }],
-        },
-        addWaypoints: false,
-        fitSelectedRoutes: true,
-        createMarker: () => null,
-      }).addTo(mapRef.current);
-
-      mapRef.current.fitBounds([
-        [startPoint[0], startPoint[1]],
-        [endPoint[0], endPoint[1]],
-      ]);
-    }
-  }, [randomRoute]);
-
+  
   useEffect(() => {
     if (routingControl.current) {
       try {
@@ -113,6 +81,9 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
       routingControl.current = null;
     }
 
+    // Eski mavi rotayı temizleme işlemi
+    setInitialToStartRoute(null); // Eski mavi rotayı haritadan kaldırmak için
+    
     if (initialToStartRoutingControl.current) {
       try {
         mapRef.current.removeControl(initialToStartRoutingControl.current);
@@ -121,51 +92,61 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
       }
       initialToStartRoutingControl.current = null;
     }
-
+  
+    // Mavi rotayı çizme işlemi, yalnızca mesafe kontrolüne göre
     if (selectedStartPoint && mapRef.current) {
-      const waypoints = [
-        L.latLng(initialPosition[0], initialPosition[1]),
-        L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
-      ];
-
-      initialToStartRoutingControl.current = L.Routing.control({
-        waypoints: waypoints,
-        routeWhileDragging: false,
-        lineOptions: {
-          styles: [{ color: 'blue', weight: 4 }],
-        },
-        addWaypoints: false,
-        fitSelectedRoutes: false,
-        createMarker: () => null,
-      })
-        .addTo(mapRef.current)
-        .on('routesfound', (e) => {
-          setInitialToStartRoute(e.routes[0].coordinates.map(coord => [coord.lat, coord.lng]));
+      const startCircle = L.circle(L.latLng(selectedStartPoint[0], selectedStartPoint[1]), { radius: 25 });
+      const startDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), startCircle.getLatLng());
+  
+      // Eğer initialPosition, startCircle'ın içine girdiyse mavi rota kaldırılır
+      if (startDistance >= startCircle.getRadius() && !count.current) {
+        const waypoints = [
+          L.latLng(initialPosition[0], initialPosition[1]),
+          L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
+        ];
+  
+        initialToStartRoutingControl.current = L.Routing.control({
+          waypoints: waypoints,
+          routeWhileDragging: false,
+          lineOptions: {
+            styles: [{ color: 'blue', weight: 3 }],
+          },
+          addWaypoints: false,
+          fitSelectedRoutes: false,
+          createMarker: () => null,
+        })
+          .addTo(mapRef.current)
+          .on('routesfound', (e) => {
+            setInitialToStartRoute(e.routes[0].coordinates.map(coord => [coord.lat, coord.lng]));
         });
+      }
     }
-
+  
+    // Kırmızı rotayı oluşturma (selectedStartPoint'ten selectedEndPoint'e)
     if (selectedStartPoint && selectedEndPoint && mapRef.current) {
       const waypoints = [
         L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
         L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
       ];
-
+  
       routingControl.current = L.Routing.control({
         waypoints: waypoints,
         routeWhileDragging: false,
         lineOptions: {
-          styles: [{ color: 'red', weight: 4, dashArray: '5, 5' }],
+          styles: [{ color: 'red', weight: 3, dashArray: '3, 5' }],
         },
         addWaypoints: false,
         fitSelectedRoutes: false,
         createMarker: () => null,
       }).addTo(mapRef.current);
-
+  
       routingControl.current.on('routesfound', () => {
         setIsRoutingControlReady(true);
       });
     }
   }, [selectedStartPoint, selectedEndPoint, initialPosition]);
+  
+  
 
   useEffect(() => {
     if (mapRef.current) {
@@ -176,7 +157,8 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
         const startDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), startCircle.getLatLng());
   
         if (startDistance < startCircle.getRadius()) {
-          message = 'Start noktasına geldiniz!';
+          count.current=true;
+          message = 'Start noktasına ulaştınız!';
         }
       }
   
@@ -221,6 +203,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
     }
   }, [drawRoute]);
 
+
   return (
     <div>
       <MapContainer
@@ -235,23 +218,17 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           attribution='© OpenStreetMap contributors'
         />
 
-        {/* Harita Tıklama Alanı */}
         <MapClickHandler />
 
-        {/* initialPosition ile selectedStartPoint/selectedEndPoint arası rota */}
+   
         {initialToStartRoute && (
           <Polyline positions={initialToStartRoute} color="blue" weight={4} />
         )}
 
-        {/* Initial Position Marker */}
+
         <Marker position={initialPosition} icon={initialPositionIcon}>
-          <Popup>
-            Initial Position
-          </Popup>
         </Marker>
 
-
-        {/* Start Position Marker */}
         <Marker
           position={startPosition}
           icon={position1Icon}
@@ -259,13 +236,9 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
             click: () => handleMarkerClick(startPosition),
           }}
         >
-          <Popup>
-            {selectedStartPoint === startPosition ? "Start Point" : "Start Position"}
-          </Popup>
         </Marker>
         <Circle center={startPosition} radius={25} color="green" />
 
-        {/* Delivery Points Markers */}
         {deliveryPoints.map((position, index) => (
           <React.Fragment key={index}>
             <Marker
@@ -275,19 +248,11 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
                 click: () => handleMarkerClick(position),
               }}
             >
-              <Popup>
-                {selectedStartPoint === position
-                  ? "Start Point"
-                  : selectedEndPoint === position
-                    ? "End Point"
-                    : `Delivery Point ${index + 1}`}
-              </Popup>
             </Marker>
             <Circle center={position} radius={25} color="orange" />
           </React.Fragment>
         ))}
 
-        {/* Rastgele Rota Çizdirme */}
         {randomRoute && (
           <Polyline
             positions={[randomRoute.startPoint, randomRoute.endPoint]}
@@ -296,7 +261,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           />
         )}
       </MapContainer>
-      <InfoMessage message={message} onClose={handleCloseMessage} />
+      <InfoMessage message={message} onClose={handleCloseMessage}/>
     </div>
   );
 };

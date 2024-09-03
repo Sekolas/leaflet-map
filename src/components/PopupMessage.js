@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/InfoMessage.css'; // CSS dosyasını import et
+import '../css/InfoMessage.css';
 
 const InfoMessage = ({ message, onClose }) => {
   if (!message) return null;
