@@ -109,7 +109,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           waypoints: waypoints,
           routeWhileDragging: false,
           lineOptions: {
-            styles: [{ color: 'blue', weight: 3 }],
+            styles: [{ color: 'blue', weight: 3,dashArray: '3, 5' }],
           },
           addWaypoints: false,
           fitSelectedRoutes: false,
@@ -119,30 +119,35 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           .on('routesfound', (e) => {
             setInitialToStartRoute(e.routes[0].coordinates.map(coord => [coord.lat, coord.lng]));
         });
+
       }
     }
-  
-    // Kırmızı rotayı oluşturma (selectedStartPoint'ten selectedEndPoint'e)
+
     if (selectedStartPoint && selectedEndPoint && mapRef.current) {
-      const waypoints = [
-        L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
-        L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
-      ];
-  
-      routingControl.current = L.Routing.control({
-        waypoints: waypoints,
-        routeWhileDragging: false,
-        lineOptions: {
-          styles: [{ color: 'red', weight: 3, dashArray: '3, 5' }],
-        },
-        addWaypoints: false,
-        fitSelectedRoutes: false,
-        createMarker: () => null,
-      }).addTo(mapRef.current);
-  
-      routingControl.current.on('routesfound', () => {
-        setIsRoutingControlReady(true);
-      });
+      const endCircle = L.circle(L.latLng(selectedEndPoint[0], selectedEndPoint[1]), { radius: 25 });
+      const endDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), endCircle.getLatLng());
+      if (endDistance >= endCircle.getRadius()){
+        const waypoints = [
+          L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
+          L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
+        ];
+    
+        routingControl.current = L.Routing.control({
+          waypoints: waypoints,
+          routeWhileDragging: false,
+          lineOptions: {
+            styles: [{ color: 'red', weight: 3, dashArray: '3, 5' }],
+          },
+          addWaypoints: false,
+          fitSelectedRoutes: false,
+          createMarker: () => null,
+        }).addTo(mapRef.current);
+    
+        routingControl.current.on('routesfound', () => {
+          setIsRoutingControlReady(true);
+        });
+      }
+      
     }
   }, [selectedStartPoint, selectedEndPoint, initialPosition]);
   
@@ -158,7 +163,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
   
         if (startDistance < startCircle.getRadius()) {
           count.current=true;
-          message = 'Start noktasına ulaştınız!';
+          message = 'Start noktasına ulaştınız End noktasına gidiniz!';
         }
       }
   
@@ -167,7 +172,7 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
         const endDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), endCircle.getLatLng());
   
         if (endDistance < endCircle.getRadius()) {
-          message = 'End noktasına ulaştınız!';
+          message = 'End noktasına ulaştınız rota tamamlandı!';
         }
       }
   
@@ -219,11 +224,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
         />
 
         <MapClickHandler />
-
-   
-        {initialToStartRoute && (
-          <Polyline positions={initialToStartRoute} color="blue" weight={4} />
-        )}
 
 
         <Marker position={initialPosition} icon={initialPositionIcon}>
