@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
@@ -253,13 +253,6 @@ const MapComponent = ({ randomRoute, drawRoute }) => {
           </React.Fragment>
         ))}
 
-        {randomRoute && (
-          <Polyline
-            positions={[randomRoute.startPoint, randomRoute.endPoint]}
-            color="green"
-            weight={4}
-          />
-        )}
       </MapContainer>
       <InfoMessage message={message} onClose={handleCloseMessage}/>
     </div>
