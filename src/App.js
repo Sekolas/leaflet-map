@@ -6,11 +6,12 @@ import routeData from './data/routes.json';
 
 function App() {
   const [routeToDraw, setRouteToDraw] = useState(null);
+  const [randomRoute, setRandomRoute] = useState(null);
 
   return (
     <div>
       <RouteButtons setRouteToDraw={setRouteToDraw} routeData={routeData} />
-      <MapComponent drawRoute={routeToDraw} />
+      <MapComponent drawRoute={routeToDraw} routeData={routeData} />
     </div>
   );
 }

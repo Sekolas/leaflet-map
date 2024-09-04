@@ -1,7 +1,7 @@
 import React from 'react';
 import '../css/InfoMessage.css';
 
-const InfoMessage = ({ message, onClose }) => {
+const PopupMessage = ({ message, onClose }) => {
   if (!message) return null;
 
   return (
@@ -14,4 +14,4 @@ const InfoMessage = ({ message, onClose }) => {
   );
 };
 
-export default InfoMessage;
+export default PopupMessage;
