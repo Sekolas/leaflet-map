@@ -34,7 +34,7 @@ const RouteMarkers = ({ selectedStartPoint, selectedEndPoint, onMarkerClick }) =
           click: () => onMarkerClick(startPosition),
         }}
       />
-      <Circle center={startPosition} radius={25} color="green" />
+      <Circle center={startPosition} radius={25} color="red" />
 
       {deliveryPoints.map((position, index) => (
         <React.Fragment key={index}>

@@ -23,7 +23,7 @@ function RouteButtons({ setRouteToDraw, routeData }) {
   const drawFullRoute = () => {
     
     const startPosition = [routeData.routes[0].start_point.location.latitude, routeData.routes[0].start_point.location.longitude];
-
+    
     
     const deliveryPoints = routeData.routes[0].delivery_points.map(point => [
       point.location.latitude, point.location.longitude

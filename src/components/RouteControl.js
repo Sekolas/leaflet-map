@@ -38,7 +38,7 @@ const RouteControl = ({
       initialToStartRoutingControl.current = null;
     }
   
-    // Mavi rotayı çizme işlemi, yalnızca mesafe kontrolüne göre
+
     if (selectedStartPoint && mapRef.current) {
       const startCircle = L.circle(L.latLng(selectedStartPoint[0], selectedStartPoint[1]), { radius: 25 });
       const startDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), startCircle.getLatLng());
@@ -52,11 +52,11 @@ const RouteControl = ({
   
         initialToStartRoutingControl.current = L.Routing.control({
           waypoints: waypoints,
-          routeWhileDragging: false,
+          routeWhileDragging: true,
           lineOptions: {
             styles: [{ color: 'blue', weight: 3,dashArray: '3, 5' }],
           },
-          addWaypoints: false,
+          addWaypoints: true,
           fitSelectedRoutes: false,
           createMarker: () => null,
         })
@@ -66,12 +66,13 @@ const RouteControl = ({
         });
 
       }
+      
     }
 
     if (selectedStartPoint && selectedEndPoint && mapRef.current) {
       const endCircle = L.circle(L.latLng(selectedEndPoint[0], selectedEndPoint[1]), { radius: 25 });
       const endDistance = mapRef.current.distance(L.latLng(initialPosition[0], initialPosition[1]), endCircle.getLatLng());
-      if (endDistance >= endCircle.getRadius()){
+      if (endDistance >= endCircle.getRadius() && !count.current){
         const waypoints = [
           L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
           L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
@@ -92,6 +93,36 @@ const RouteControl = ({
           setIsRoutingControlReady(true);
         });
       }
+      else if (endDistance >= endCircle.getRadius() && count.current){
+        if (routingControl.current) {
+          try {
+            mapRef.current.removeControl(routingControl.current);
+          } catch (error) {
+            console.error('Routing control remove error:', error);
+          }
+          routingControl.current = null;
+        }
+        const waypoints = [
+          L.latLng(initialPosition[0], initialPosition[1]),
+          L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
+        ];
+    
+        routingControl.current = L.Routing.control({
+          waypoints: waypoints,
+          routeWhileDragging: false,
+          lineOptions: {
+            styles: [{ color: 'red', weight: 3, dashArray: '3, 5' }],
+          },
+          addWaypoints: false,
+          fitSelectedRoutes: false,
+          createMarker: () => null,
+        }).addTo(mapRef.current);
+    
+        routingControl.current.on('routesfound', () => {
+          setIsRoutingControlReady(true);
+        });
+      }
+      
       
     }
   }, [selectedStartPoint, selectedEndPoint, initialPosition]);
@@ -125,7 +156,7 @@ const RouteControl = ({
     }
   }, [initialPosition, selectedStartPoint, selectedEndPoint]);
   
-  useEffect(() => {
+  useEffect(() => {    
     if (drawRoute && mapRef.current) {
       if (routingControl.current) {
         try {
