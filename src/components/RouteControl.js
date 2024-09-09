@@ -77,7 +77,7 @@ const RouteControl = ({
           L.latLng(selectedStartPoint[0], selectedStartPoint[1]),
           L.latLng(selectedEndPoint[0], selectedEndPoint[1]),
         ];
-    
+      
         routingControl.current = L.Routing.control({
           waypoints: waypoints,
           routeWhileDragging: false,
@@ -140,6 +140,7 @@ const RouteControl = ({
         if (startDistance < startCircle.getRadius()) {
           count.current=true;
           message = 'Start noktasına ulaştınız End noktasına gidiniz!';
+          setMessage(message);
         }
       }
   
@@ -149,10 +150,11 @@ const RouteControl = ({
   
         if (endDistance < endCircle.getRadius()) {
           message = 'End noktasına ulaştınız rota tamamlandı Yeni Rota Belirleyiniz!';
+          setMessage(message);
         }
       }
   
-      setMessage(message);
+      
     }
   }, [initialPosition, selectedStartPoint, selectedEndPoint]);
   
