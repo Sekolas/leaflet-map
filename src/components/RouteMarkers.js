@@ -9,7 +9,7 @@ import deliveryIconUrl from '../assets/ikon2.png';
 const position1Icon = L.icon({
   iconUrl: position1IconUrl,
   iconSize: [40, 40],
-  iconAnchor: [20, 40],
+  iconAnchor: [20, 30],
 });
 
 const deliveryIcon = L.icon({
