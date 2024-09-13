@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import MapComponent from './components/Map';
 import RouteButtons from './components/RouteButton';
 import routeData from './data/routes.json';
+import PopupMessage from './components/PopupMessage';
 
 function App() {
   const [routeToDraw, setRouteToDraw] = useState(null);
-  const [randomRoute, setRandomRoute] = useState(null);
 
   return (
     <div>

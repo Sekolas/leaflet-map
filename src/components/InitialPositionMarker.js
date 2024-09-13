@@ -6,8 +6,8 @@ import initialPositionIconUrl from '../assets/musoshi.png';
 
 const initialPositionIcon = L.icon({
   iconUrl: initialPositionIconUrl,
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
+  iconSize: [30, 30],
+  iconAnchor: [20, 30],
 });
 
 const InitialPositionMarker = ({ position }) => {

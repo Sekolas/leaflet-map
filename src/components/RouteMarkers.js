@@ -9,7 +9,7 @@ import deliveryIconUrl from '../assets/ikon2.png';
 const position1Icon = L.icon({
   iconUrl: position1IconUrl,
   iconSize: [40, 40],
-  iconAnchor: [20, 40],
+  iconAnchor: [20, 30],
 });
 
 const deliveryIcon = L.icon({
@@ -34,7 +34,7 @@ const RouteMarkers = ({ selectedStartPoint, selectedEndPoint, onMarkerClick }) =
           click: () => onMarkerClick(startPosition),
         }}
       />
-      <Circle center={startPosition} radius={25} color="green" />
+      <Circle center={startPosition} radius={25} color="red" />
 
       {deliveryPoints.map((position, index) => (
         <React.Fragment key={index}>
